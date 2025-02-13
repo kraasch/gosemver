@@ -21,6 +21,7 @@ opens a CLI menu to choose the version and release date from.
 ## tasks
 
   - [ ] forgive semantic versions of the form `v1.0.0`.
+  - [ ] do not allow dates before first Go release, i.e. before 2011-01-01.
   - [ ] use Go's [cobra package](https://github.com/spf13/cobra/issues/1216) for mutually exclusive CLI arguments.
 
 ## ideas
