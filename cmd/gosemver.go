@@ -36,14 +36,14 @@ var (
 
   // styles.
   styleBox = lip.NewStyle().
-    BorderStyle(lip.NormalBorder()).
-    BorderForeground(lip.Color("56"))
+  BorderStyle(lip.NormalBorder()).
+  BorderForeground(lip.Color("56"))
 )
 
 type model struct {
   width     int
   height    int
-	table     table.Model
+  table     table.Model
 }
 
 func (m model) Init() tea.Cmd {
@@ -51,29 +51,29 @@ func (m model) Init() tea.Cmd {
 }
 
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	var cmd tea.Cmd
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "esc":
-			if m.table.Focused() {
-				m.table.Blur()
-			} else {
-				m.table.Focus()
-			}
-		case "q", "ctrl+c":
-			return m, tea.Quit
-		case "enter":
+  var cmd tea.Cmd
+  switch msg := msg.(type) {
+  case tea.KeyMsg:
+    switch msg.String() {
+    case "esc":
+      if m.table.Focused() {
+        m.table.Blur()
+      } else {
+        m.table.Focus()
+      }
+    case "q", "ctrl+c":
+      return m, tea.Quit
+    case "enter":
       selection = m.table.SelectedRow()[1]
-			return m, tea.Quit
-		}
-	}
-	m.table, cmd = m.table.Update(msg)
-	return m, cmd
+      return m, tea.Quit
+    }
+  }
+  m.table, cmd = m.table.Update(msg)
+  return m, cmd
 }
 
 func (m model) View() string {
-	return styleBox.Render(m.table.View()) + "\n"
+  return styleBox.Render(m.table.View()) + "\n"
 }
 
 func main() {
