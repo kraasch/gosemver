@@ -1,7 +1,8 @@
 
 test:
 	go clean -testcache
-	go test -v ./...
+	go test ./...
+	@#go test -v ./...
 
 run:
 	go run ./cmd/gosemver.go
@@ -15,11 +16,6 @@ build:
 		-gcflags -m=2 \
 		./cmd/ 
 
-# TODO: remove this.
-init:
-	bash ./init.sh
-
-# TODO: remove this if you don't need it.
 hub_update:
 	@hub_ctrl ${HUB_MODE} ln "$(realpath ./build/gosemver)"
 

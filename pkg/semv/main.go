@@ -2,11 +2,11 @@
 package semv
 
 import (
-  "fmt"
+  // "fmt"
 )
 
 const (
-  url = "https://go.dev/doc/devel/release#"
+  url = "https://go.dev/doc/devel/release"
 )
 
 var (
@@ -40,10 +40,32 @@ var (
     { "1.2", "go1.2",    "2013-12-01"},
     { "1.1", "go1.1",    "2013-05-13"},
     { "1.0", "go1",      "2012-03-28"},
+    { "0.0", "pre.go1",  "2011-03-16"},
   }
 )
 
-func Toast(in string) string {
-  return fmt.Sprintf("%#v", url + in)
+func SemverToUrl(semver string) string {
+  gosemver := ""
+  for _, v := range versions {
+    if v.semver == semver {
+      gosemver = v.gosemver
+    }
+  }
+  if gosemver != "" {
+    return url + "#" + gosemver
+  } else {
+    return url
+  }
+}
+
+func DateToSemver(date string) string {
+  semver := ""
+  for _, v := range versions {
+    semver = v.semver
+    if v.date <= date {
+      break
+    }
+  }
+  return semver
 }
 

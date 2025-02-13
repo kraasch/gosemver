@@ -21,7 +21,6 @@ type TestList struct {
   testName          string
   isMulti           bool
   inputArr          []string
-  inputArr2         []string
   expectedValue     string
 }
 
@@ -174,7 +173,7 @@ var suites = []TestSuite{
       {
         testName:      "date_to-url_before-hit_03",
         isMulti:       false,
-        inputArr:      []string{"2023-0200"},
+        inputArr:      []string{"2023-02-00"},
         expectedValue: "1.19",
       },
       {
