@@ -14,7 +14,7 @@ import (
   "flag"
 
   // misc.
-  // opener "github.com/kraasch/urlopener/pkg/opener"
+  opener "github.com/kraasch/urlopener/pkg/opener"
 
   // local packages.
   semv "github.com/kraasch/gosemver/pkg/semv"
@@ -161,7 +161,7 @@ func main() {
 
   // print the last highlighted value in calendar to stdout.
   if doOpen {
-    fmt.Println("OPEN") // TODO: implement.
+    _ = opener.OpenUrl(result)
   }
 
   // print the last highlighted value in calendar to stdout.

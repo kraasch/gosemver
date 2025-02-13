@@ -5,7 +5,7 @@ Prints or opens respective URLs for user provided Go semvers.
 
 ## tasks
 
-  - [ ] forgive semantic versions of the form v1.0.0
+  - [ ] forgive semantic versions of the form `v1.0.0`.
   - [ ] use Go's [cobra package](https://github.com/spf13/cobra/issues/1216) for mutually exclusive CLI arguments.
 
 ## ideas
