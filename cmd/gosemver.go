@@ -17,15 +17,23 @@ import (
   // opener "github.com/kraasch/urlopener/pkg/opener"
 
   // local packages.
-  // semv "github.com/kraasch/gosemver/pkg/semv"
+  semv "github.com/kraasch/gosemver/pkg/semv"
 )
 
 var (
   // return value.
-  output = ""
-  // flags.
-  verbose  = false
-  suppress = false
+  selection = ""
+  result    = ""
+
+  // output flags.
+  doPrint     = false
+  doOpen      = false
+
+  // input flags.
+  interactive = false
+  inSemver    = ""
+  inDate      = ""
+
   // styles.
   styleBox = lip.NewStyle().
     BorderStyle(lip.NormalBorder()).
@@ -42,22 +50,6 @@ func (m model) Init() tea.Cmd {
   return func() tea.Msg { return nil }
 }
 
-// func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-//   var cmd tea.Cmd
-//   switch msg := msg.(type) {
-//   case tea.WindowSizeMsg:
-//     m.width = msg.Width
-//     m.height = msg.Height
-//   case tea.KeyMsg:
-//     switch msg.String() {
-//     case "q":
-//       output = "You quit on me!"
-//       return m, tea.Quit
-//     }
-//   }
-//   return m, cmd
-// }
-
 func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	switch msg := msg.(type) {
@@ -72,25 +64,13 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "q", "ctrl+c":
 			return m, tea.Quit
 		case "enter":
-			return m, tea.Batch(
-				tea.Printf("Let's go to %s!", m.table.SelectedRow()[1]),
-			)
+      selection = m.table.SelectedRow()[1]
+			return m, tea.Quit
 		}
 	}
 	m.table, cmd = m.table.Update(msg)
 	return m, cmd
 }
-
-// func (m model) View() string {
-//   var str string
-//   if verbose {
-//     str = semv.Toast("Hello!")
-//   } else {
-//     str = semv.Toast("Hi!")
-//   }
-//   str = styleBox.Render(str)
-//   return lip.Place(m.width, m.height, lip.Center, lip.Center, str)
-// }
 
 func (m model) View() string {
 	return styleBox.Render(m.table.View()) + "\n"
@@ -99,58 +79,94 @@ func (m model) View() string {
 func main() {
 
   // parse flags.
-  flag.BoolVar(&verbose,  "verbose",   false, "Show info")
-  flag.BoolVar(&suppress, "suppress",  false, "Print nothing")
+
+  // NOTE: must provide at least one of the following outputs.
+  flag.BoolVar(  &doOpen,      "open",        false, "Open URL in browser")
+  flag.BoolVar(  &doPrint,     "print",       false, "Print URL")
+
+  // NOTE: must provide exactly one of the following inputs.
+  flag.BoolVar(  &interactive, "interactive", false, "Choose from interactive menu")
+  flag.StringVar(&inSemver,    "semver",      "",    "Go semver to look up")
+  flag.StringVar(&inDate,      "date",        "",    "Go date to look up")
+
   flag.Parse()
 
+  // print usage.
+  if ! (doOpen || doPrint) {
+    fmt.Println("Usage: must at least provide one output option.")
+    fmt.Println("  -open")
+    fmt.Println("  -print")
+    return
+  }
+  notAtLeastOne := !interactive && inSemver == "" && inDate == ""
+  moreThanOne := (interactive && inSemver != "") || (interactive && inDate != "") || (inSemver != "" && inDate != "")
+  if notAtLeastOne || moreThanOne {
+    fmt.Println("Usage: provide exactly one input option.")
+    fmt.Println("  -interactive")
+    fmt.Println("  -semver <v3.0>")
+    fmt.Println("  -date <yyyy-mm-dd>")
+    return
+  }
+
   // prepare model.
-	columns := []table.Column{
-		{Title: "Rank", Width: 4},
-		{Title: "City", Width: 10},
-		{Title: "Country", Width: 10},
-		{Title: "Population", Width: 10},
-	}
-	rows := []table.Row{
-		{"1", "Tokyo", "Japan", "37,274,000"},
-		{"2", "Delhi", "India", "32,065,760"},
-		{"98", "Rome", "Italy", "4,297,877"},
-		{"1", "Tokyo", "Japan", "37,274,000"},
-		{"2", "Delhi", "India", "32,065,760"},
-		{"98", "Rome", "Italy", "4,297,877"},
-		{"99", "Shijiazhuang", "China", "4,285,135"},
-		{"100", "Montreal", "Canada", "4,276,526"},
-	}
-	t := table.New(
-		table.WithColumns(columns),
-		table.WithRows(rows),
-		table.WithFocused(true),
-		table.WithHeight(7),
-	)
-	s := table.DefaultStyles()
-	s.Header = s.Header.
-		BorderStyle(lip.NormalBorder()).
-		BorderForeground(lip.Color("240")).
-		BorderBottom(true).
-		Bold(false)
-	s.Selected = s.Selected.
-		Foreground(lip.Color("229")).
-		Background(lip.Color("57")).
-		Bold(false)
-	t.SetStyles(s)
+  columns := []table.Column{
+    {Title: "No.",       Width:  3},
+    {Title: "Semver",    Width: 10},
+    {Title: "Rel. Date", Width: 10},
+  }
+  rows := []table.Row{}
+  for _, v := range semv.Versions {
+    rows = append(rows, table.Row{v.Number, v.Semver, v.Date})
+  }
+  t := table.New(
+    table.WithColumns(columns),
+    table.WithRows(rows),
+    table.WithFocused(true),
+    table.WithHeight(7),
+  )
+  s := table.DefaultStyles()
+  s.Header = s.Header.
+  BorderStyle(lip.NormalBorder()).
+  BorderForeground(lip.Color("240")).
+  BorderBottom(true).
+  Bold(false)
+  s.Selected = s.Selected.
+  Foreground(lip.Color("229")).
+  Background(lip.Color("57")).
+  Bold(false)
+  t.SetStyles(s)
 
 
   // init model.
   m := model{0, 0, t}
 
   // start bubbletea.
-  if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
-    fmt.Println("Error running program:", err)
-    os.Exit(1)
+  if interactive {
+    if _, err := tea.NewProgram(m, tea.WithAltScreen()).Run(); err != nil {
+      fmt.Println("Error running program:", err)
+      os.Exit(1)
+    }
+    // read interactively selected value.
+    if selection == "" {
+      return
+    } else {
+      inSemver = selection
+    }
+  }
+  // compute output url.
+  if inDate != "" {
+    inSemver = semv.DateToSemver(inDate)
+  }
+  result = semv.SemverToUrl(inSemver)
+
+  // print the last highlighted value in calendar to stdout.
+  if doOpen {
+    fmt.Println("OPEN") // TODO: implement.
   }
 
   // print the last highlighted value in calendar to stdout.
-  if !suppress {
-    fmt.Println(output)
+  if doPrint {
+    fmt.Println(result)
   }
 
 } // fin.
