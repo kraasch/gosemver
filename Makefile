@@ -16,6 +16,9 @@ build:
 		-gcflags -m=2 \
 		./cmd/ 
 
+install:
+	ln "$(realpath ./build/gosemver)" -s ~/.local/bin/gosemver
+
 hub_update:
 	@hub_ctrl ${HUB_MODE} ln "$(realpath ./build/gosemver)"
 
